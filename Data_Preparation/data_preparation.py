@@ -152,14 +152,26 @@ def Data_Preparation(noise_version=1):
 
     noise_index = 0
 
+    def noise_pw(noise):
+        mean = np.mean(noise)
+        n = np.sqrt(np.mean((noise - mean) ** 2))
+        
+        return(n**2)
+    
+    def signal_pw(signal):
+        range = max(signal) - min(signal)
+        
+        return(range**2 / 8)
+
     # Adding noise to train
-    rnd_train = np.random.randint(low=20, high=200, size=len(beats_train)) / 100
+    rnd_train = np.random.randint(low=0, high=80, size=len(beats_train)) / 4
     for i in range(len(beats_train)):
         noise = noise_train[noise_index:noise_index + samples]
-        beat_max_value = np.max(beats_train[i]) - np.min(beats_train[i])
-        noise_max_value = np.max(noise) - np.min(noise)
-        Ase = noise_max_value / beat_max_value
-        alpha = rnd_train[i] / Ase
+        #beat_max_value = np.max(beats_train[i]) - np.min(beats_train[i])
+        #noise_max_value = np.max(noise) - np.min(noise)
+        #Ase = noise_max_value / beat_max_value
+        #alpha = rnd_train[i] / Ase
+        alpha = np.sqrt(10 ** (-rnd_train[i] / 10) * signal_pw(beats_train[i]) / noise_pw(noise))
         signal_noise = beats_train[i] + alpha * noise
         sn_train.append(signal_noise)
         noise_index += samples
@@ -169,7 +181,7 @@ def Data_Preparation(noise_version=1):
 
     # Adding noise to test
     noise_index = 0
-    rnd_test = np.random.randint(low=20, high=200, size=len(beats_test)) / 100
+    rnd_test = np.random.randint(low=0, high=80, size=len(beats_test)) / 4
 
     # Saving the random array so we can use it on the amplitude segmentation tables
     np.save('rnd_test.npy', rnd_test)
@@ -177,10 +189,11 @@ def Data_Preparation(noise_version=1):
 
     for i in range(len(beats_test)):
         noise = noise_test[noise_index:noise_index + samples]
-        beat_max_value = np.max(beats_test[i]) - np.min(beats_test[i])
-        noise_max_value = np.max(noise) - np.min(noise)
-        Ase = noise_max_value / beat_max_value
-        alpha = rnd_test[i] / Ase
+        #beat_max_value = np.max(beats_test[i]) - np.min(beats_test[i])
+        #noise_max_value = np.max(noise) - np.min(noise)
+        #Ase = noise_max_value / beat_max_value
+        #alpha = rnd_test[i] / Ase
+        alpha = np.sqrt(10 ** (-rnd_test[i] / 10) * signal_pw(beats_test[i]) / noise_pw(noise))
         signal_noise = beats_test[i] + alpha * noise
         sn_test.append(signal_noise)
         noise_index += samples
